@@ -3,6 +3,6 @@
     <string name="new_game">Новая игра</string>
     <string name="win_dark">Вы победили! Все плитки тёмные.</string>
     <string name="win_bright">Вы победили! Все плитки светлые.</string>
-    <string name="generation_moves_title">Ходы генерации (строки и столбцы от 1 до 4):</string>
-    <string name="generation_move">%1$d. Строка %2$d, столбец %3$d</string>
+    <string name="generation_moves_title">Ходы генерации:</string>
+    <string name="generation_move">%1$d. [%2$d] [%3$d]</string>
 </resources>

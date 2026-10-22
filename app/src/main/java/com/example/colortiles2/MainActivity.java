@@ -7,6 +7,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.Random;
@@ -14,19 +15,25 @@ import java.util.Random;
 public class MainActivity extends AppCompatActivity {
     int darkColor;
     int brightColor;
+    TextView generationMovesText;
+
     // Первый индекс задает строку, второй задает столбец, счет начинается с нуля
     View[][] tiles = new View[4][4];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         // Разметка игрового экрана
         setContentView(R.layout.activity_main);
         Resources r = getResources();
         darkColor = r.getColor(R.color.dark);
         brightColor = r.getColor(R.color.bright);
-        // Плитки в разметке по их id
-        // заполнение массива ссылками на них
+
+        // Список ходов генерации
+        generationMovesText = findViewById(R.id.generation_moves);
+
+        // Заполнение массива ссылками на плитки
         tiles[0][0] = findViewById(R.id.t00);
         tiles[0][1] = findViewById(R.id.t01);
         tiles[0][2] = findViewById(R.id.t02);
@@ -58,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
     // Переключение цвета плитки
     public void changeColor(View v) {
         ColorDrawable d = (ColorDrawable) v.getBackground();
+
         if (d.getColor() == brightColor) {
             v.setBackgroundColor(darkColor);
         } else {
@@ -65,11 +73,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // Переключение нажатой плитки и всех соседних
+    // Переключение квадратов 3x3
     public void changeAround(int x, int y) {
         for (int i = x - 1; i <= x + 1; i++) {
             for (int j = y - 1; j <= y + 1; j++) {
-                if (i >= 0 && i < 4 && j >= 0 && j < 4) {
+                if (i >= 0 && i < 4 && j >= 0 && j < 4) { //
                     changeColor(tiles[i][j]);
                 }
             }
@@ -103,8 +111,13 @@ public class MainActivity extends AppCompatActivity {
         Random random = new Random();
         String lastStart = getPreferences(MODE_PRIVATE).getString("last_start", "");
         String start;
+        String moves;
+
         // Повтор генерации при: уже было / уже выиграно
         do {
+            // Очищаем список перед каждой попыткой генерации
+            moves = "";
+            int moveNumber = 1;
             int startColor;
 
             if (random.nextBoolean()) {
@@ -113,17 +126,25 @@ public class MainActivity extends AppCompatActivity {
                 startColor = darkColor;
             }
 
+            // Начало - одноцветное поле
             for (int i = 0; i < 4; i++) {
                 for (int j = 0; j < 4; j++) {
                     tiles[i][j].setBackgroundColor(startColor);
                 }
             }
 
-            // Случайные ходы
+            // Случайные ходы и их запись в список
             for (int i = 0; i < 4; i++) {
                 for (int j = 0; j < 4; j++) {
                     if (random.nextBoolean()) {
                         changeAround(i, j);
+                        moves += getString(
+                                R.string.generation_move,
+                                moveNumber,
+                                i + 1,
+                                j + 1
+                        ) + "\n";
+                        moveNumber++;
                     }
                 }
             }
@@ -147,6 +168,11 @@ public class MainActivity extends AppCompatActivity {
         } while (checkWin() || start.equals(lastStart));
 
         getPreferences(MODE_PRIVATE).edit().putString("last_start", start).apply();
+
+        // Список ходов генерации
+        generationMovesText.setText(
+                getString(R.string.generation_moves_title) + "\n" + moves
+        );
     }
 
     public void reset(View v) {
@@ -156,9 +182,11 @@ public class MainActivity extends AppCompatActivity {
     // Победа - когда цвет каждой плитки совпадает с цветом первой
     public boolean checkWin() {
         ColorDrawable first = (ColorDrawable) tiles[0][0].getBackground();
+
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
                 ColorDrawable current = (ColorDrawable) tiles[i][j].getBackground();
+
                 if (current.getColor() != first.getColor()) {
                     return false;
                 }
@@ -166,5 +194,4 @@ public class MainActivity extends AppCompatActivity {
         }
         return true;
     }
-
 }
