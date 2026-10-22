@@ -243,5 +243,14 @@
             android:onClick="reset"
             android:text="@string/new_game" />
 
+        <TextView
+            android:id="@+id/generation_moves"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"
+            android:textSize="16sp" />
+
     </LinearLayout>
 </ScrollView>

@@ -65,45 +65,87 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // Переключение нажатой плитки и всех соседних
+    public void changeAround(int x, int y) {
+        for (int i = x - 1; i <= x + 1; i++) {
+            for (int j = y - 1; j <= y + 1; j++) {
+                if (i >= 0 && i < 4 && j >= 0 && j < 4) {
+                    changeColor(tiles[i][j]);
+                }
+            }
+        }
+    }
+
     public void onClick(View v) {
         // Первая цифра тега задает строку, вторая задает столбец
         String tag = v.getTag().toString();
         int x = Integer.parseInt(tag.substring(0, 1));
         int y = Integer.parseInt(tag.substring(1, 2));
 
-        // Нажатая плитка меняется здесь и дважды в цикле, итог как от одной смены
-        changeColor(v);
-        // Переключение всех плиток строки x и столбца y
-        for (int i = 0; i < 4; i++) {
-            changeColor(tiles[x][i]);
-            changeColor(tiles[i][y]);
-        }
+        changeAround(x, y);
 
         // После хода проверка на победу и показ сообщения
         if (checkWin()) {
             ColorDrawable d = (ColorDrawable) tiles[0][0].getBackground();
-            int message = d.getColor() == darkColor ? R.string.win_dark : R.string.win_bright;
+            int message;
+
+            if (d.getColor() == darkColor) {
+                message = R.string.win_dark;
+            } else {
+                message = R.string.win_bright;
+            }
+
             Toast.makeText(this, message, Toast.LENGTH_LONG).show();
         }
     }
 
     public void generateField() {
         Random random = new Random();
-        // Хранение прошлой стартовой расстановку между запусками приложения
         String lastStart = getPreferences(MODE_PRIVATE).getString("last_start", "");
         String start;
-        // Генерация поля заново, если оно уже выиграно или совпало с прошлым стартом
+        // Повтор генерации при: уже было / уже выиграно
         do {
+            int startColor;
+
+            if (random.nextBoolean()) {
+                startColor = brightColor;
+            } else {
+                startColor = darkColor;
+            }
+
+            for (int i = 0; i < 4; i++) {
+                for (int j = 0; j < 4; j++) {
+                    tiles[i][j].setBackgroundColor(startColor);
+                }
+            }
+
+            // Случайные ходы
+            for (int i = 0; i < 4; i++) {
+                for (int j = 0; j < 4; j++) {
+                    if (random.nextBoolean()) {
+                        changeAround(i, j);
+                    }
+                }
+            }
+
+            // Записываем полученную стартовую расстановку
             start = "";
             for (int i = 0; i < 4; i++) {
                 for (int j = 0; j < 4; j++) {
-                    // Случайное число 0 или 1 определяет цвет плитки
-                    int color = random.nextInt(2);
-                    tiles[i][j].setBackgroundColor(color == 0 ? brightColor : darkColor);
+                    ColorDrawable d = (ColorDrawable) tiles[i][j].getBackground();
+                    int color;
+
+                    if (d.getColor() == brightColor) {
+                        color = 0;
+                    } else {
+                        color = 1;
+                    }
+
                     start += color;
                 }
             }
         } while (checkWin() || start.equals(lastStart));
+
         getPreferences(MODE_PRIVATE).edit().putString("last_start", start).apply();
     }
 
